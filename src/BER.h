@@ -571,10 +571,11 @@ public:
      */
     void encode(Stream &stream) {
         if (_length > 0x7F) {
-            stream.write(0x80 | (_size-1));
+            stream.write(0x80 | _size - 1);
             unsigned int length = _length;
-            for (uint8_t index = 0; index < (_size-1); ++index) {
-                stream.write(static_cast<uint8_t>((length >> (((_size-1) - index - 1) << 3)) & 0xFF));
+            for (uint8_t index = 0; index < _size - 1; ++index) {
+                stream.write(length >> ((_size - index - 2) << 3));
+
             }
         } else {
             stream.write(_length);
@@ -596,8 +597,6 @@ public:
                 _length += stream.read();
             }
             _size++;
-        } else {
-            _size = 1;
         }
     }
 #else
@@ -615,11 +614,12 @@ public:
     uint8_t* encode(uint8_t *buffer) {
         uint8_t *pointer = buffer;
         if (_length > 0x7F) {
-            *pointer = 0x80 | (_size-1);
-            pointer += (_size-1);
+            *pointer = 0x80 | _size - 1;
+            pointer += _size - 1;
+
             unsigned int value = _length;
-            for (uint8_t index = 0; index < (_size-1); ++index) {
-                *pointer-- = static_cast<uint8_t>(value & 0xFF);
+            for (uint8_t index = 0; index < _size - 1; ++index) {
+                *pointer-- = value;
                 value >>= 8;
             }
         } else {
@@ -644,6 +644,7 @@ public:
                 _length <<= 8;
                 _length += *pointer++;
             }
+            _size++;
         }
         return pointer;
     }
